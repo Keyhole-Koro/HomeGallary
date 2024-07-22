@@ -6,20 +6,28 @@ public class PlayerController : MonoBehaviour
 
     private Camera playerCamera; // Reference to the camera that is a child of the player
 
+    Rigidbody rb;
+
     void Start()
     {
         transform.position = new Vector3(0f, 1f, 0f); // Set initial position
 
-        // Get the Camera component from the child objects
-        playerCamera = GetComponentInChildren<Camera>();
+        playerCamera = GetComponentInChildren<Camera>(); // Get the camera from the child objects
 
         if (playerCamera == null)
         {
             Debug.LogError("No camera found as a child of the player!");
         }
 
+        // Add and get Rigidbody component
+        rb = gameObject.AddComponent<Rigidbody>();
+        rb.freezeRotation = true; // Freeze rotation (if needed)
+        rb.useGravity = true; // Enable gravity (if needed)
+
         BoxCollider playerCollider = gameObject.AddComponent<BoxCollider>();
         playerCollider.size = new Vector3(1f, 1f, 1f);
+
+        playerCamera.transform.localPosition = new Vector3(0f, 1f, 0f);
     }
 
     void Update()
@@ -37,8 +45,7 @@ public class PlayerController : MonoBehaviour
 
             // Calculate player's movement direction relative to the camera's orientation
             Quaternion cameraRotation = Quaternion.LookRotation(cameraForward);
-            Vector3 moveDirection =
-                cameraRotation * new Vector3(horizontalInput, 0f, verticalInput);
+            Vector3 moveDirection = cameraRotation * new Vector3(horizontalInput, 0f, verticalInput);
 
             // Normalize movement direction and apply speed to move
             transform.Translate(moveDirection.normalized * moveSpeed * Time.deltaTime, Space.World);
@@ -57,12 +64,8 @@ public class PlayerController : MonoBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
-        //        if (collision.gameObject.CompareTag("Wall") || collision.gameObject.CompareTag("Floor"))
-        //        {
-        // プレイヤーの速度をゼロに設定して、動きを停止させる
-        print("entered");
+        // Reset player's velocity and angular velocity on collision
         GetComponent<Rigidbody>().velocity = Vector3.zero;
         GetComponent<Rigidbody>().angularVelocity = Vector3.zero;
-        //        }
     }
 }

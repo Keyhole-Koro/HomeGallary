@@ -3,6 +3,7 @@ using UnityEngine;
 public class CreateRoom : MonoBehaviour
 {
     float planeSize = 10f; // Size of the plane
+
     void Start()
     {
         CreateFlatPlane();
@@ -15,7 +16,8 @@ public class CreateRoom : MonoBehaviour
         float planeHeight = 0.1f; // Height of the plane
 
         GameObject plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
-        plane.transform.position = new Vector3(0f, 0f, 0f); // Set the position of the plane
+        plane.name = "Floor"; // Set a name for the plane
+        plane.transform.position = new Vector3(0f, -0.05f, 0f); // Set the position of the plane slightly below the center
         plane.transform.localScale = new Vector3(planeSize, planeHeight, planeSize); // Set the scale of the plane
         plane.GetComponent<Renderer>().material.color = Color.gray; // Set the color of the plane to gray
 
@@ -38,6 +40,7 @@ public class CreateRoom : MonoBehaviour
 
         // Wall 1 (left)
         GameObject wall1 = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        wall1.name = "Wall1"; // Set a name for the wall
         wall1.transform.position = planePosition + new Vector3(-halfWidth, wallHeight / 2f, 0f);
         wall1.transform.localScale = new Vector3(1f, wallHeight, planeSize);
         wall1.GetComponent<Renderer>().material.color = Color.gray;
@@ -45,9 +48,10 @@ public class CreateRoom : MonoBehaviour
         // Add BoxCollider to Wall 1
         BoxCollider wall1Collider = wall1.AddComponent<BoxCollider>();
         wall1Collider.size = new Vector3(1f, wallHeight, planeSize);
-    
+
         // Wall 2 (right)
         GameObject wall2 = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        wall2.name = "Wall2"; // Set a name for the wall
         wall2.transform.position = planePosition + new Vector3(halfWidth, wallHeight / 2f, 0f);
         wall2.transform.localScale = new Vector3(1f, wallHeight, planeSize);
         wall2.GetComponent<Renderer>().material.color = Color.gray;
@@ -58,6 +62,7 @@ public class CreateRoom : MonoBehaviour
 
         // Wall 3 (top)
         GameObject wall3 = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        wall3.name = "Wall3"; // Set a name for the wall
         wall3.transform.position = planePosition + new Vector3(0f, wallHeight / 2f, halfLength);
         wall3.transform.localScale = new Vector3(planeSize, wallHeight, 1f);
         wall3.GetComponent<Renderer>().material.color = Color.gray;
@@ -68,6 +73,7 @@ public class CreateRoom : MonoBehaviour
 
         // Wall 4 (bottom)
         GameObject wall4 = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        wall4.name = "Wall4"; // Set a name for the wall
         wall4.transform.position = planePosition + new Vector3(0f, wallHeight / 2f, -halfLength);
         wall4.transform.localScale = new Vector3(planeSize, wallHeight, 1f);
         wall4.GetComponent<Renderer>().material.color = Color.gray;
@@ -77,3 +83,4 @@ public class CreateRoom : MonoBehaviour
         wall4Collider.size = new Vector3(planeSize, wallHeight, 1f);
     }
 }
+    
