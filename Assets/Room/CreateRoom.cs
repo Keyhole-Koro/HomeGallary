@@ -2,16 +2,19 @@ using UnityEngine;
 
 public class CreateRoom : MonoBehaviour
 {
-    float planeSize = 10f; // Size of the plane
+    float planeSize = 20f; // Size of the plane
 
     void Start()
     {
-        CreateFlatPlane();
-        CreateWalls();
+        // Use the GameObject this script is attached to as the parent
+        Transform parentTransform = transform;
+
+        CreateFlatPlane(parentTransform); // Create a flat plane using the parentTransform
+        CreateWalls(parentTransform); // Create walls using the parentTransform
     }
 
     // Function to create a flat gray plane
-    void CreateFlatPlane()
+    void CreateFlatPlane(Transform parent)
     {
         float planeHeight = 0.1f; // Height of the plane
 
@@ -24,15 +27,18 @@ public class CreateRoom : MonoBehaviour
         // Add BoxCollider to the plane
         BoxCollider planeCollider = plane.AddComponent<BoxCollider>();
         planeCollider.size = new Vector3(planeSize, planeHeight, planeSize); // Adjust collider size to match plane's scale
+
+        // Set the parent GameObject
+        plane.transform.SetParent(parent);
     }
 
     // Function to create four gray walls around the plane
-    void CreateWalls()
+    void CreateWalls(Transform parent)
     {
         float wallHeight = 4f; // Height of the walls
 
         // Get the position and scale of the plane
-        Vector3 planePosition = new Vector3(0f, 0f, 0f);
+        Vector3 planePosition = Vector3.zero; // Center of the plane
 
         // Calculate wall positions based on the plane's position and scale
         float halfWidth = planeSize / 2f;
@@ -49,6 +55,9 @@ public class CreateRoom : MonoBehaviour
         BoxCollider wall1Collider = wall1.AddComponent<BoxCollider>();
         wall1Collider.size = new Vector3(1f, wallHeight, planeSize);
 
+        // Set the parent GameObject
+        wall1.transform.SetParent(parent);
+
         // Wall 2 (right)
         GameObject wall2 = GameObject.CreatePrimitive(PrimitiveType.Cube);
         wall2.name = "Wall2"; // Set a name for the wall
@@ -59,6 +68,9 @@ public class CreateRoom : MonoBehaviour
         // Add BoxCollider to Wall 2
         BoxCollider wall2Collider = wall2.AddComponent<BoxCollider>();
         wall2Collider.size = new Vector3(1f, wallHeight, planeSize);
+
+        // Set the parent GameObject
+        wall2.transform.SetParent(parent);
 
         // Wall 3 (top)
         GameObject wall3 = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -71,6 +83,9 @@ public class CreateRoom : MonoBehaviour
         BoxCollider wall3Collider = wall3.AddComponent<BoxCollider>();
         wall3Collider.size = new Vector3(planeSize, wallHeight, 1f);
 
+        // Set the parent GameObject
+        wall3.transform.SetParent(parent);
+
         // Wall 4 (bottom)
         GameObject wall4 = GameObject.CreatePrimitive(PrimitiveType.Cube);
         wall4.name = "Wall4"; // Set a name for the wall
@@ -81,6 +96,8 @@ public class CreateRoom : MonoBehaviour
         // Add BoxCollider to Wall 4
         BoxCollider wall4Collider = wall4.AddComponent<BoxCollider>();
         wall4Collider.size = new Vector3(planeSize, wallHeight, 1f);
+
+        // Set the parent GameObject
+        wall4.transform.SetParent(parent);
     }
 }
-    
