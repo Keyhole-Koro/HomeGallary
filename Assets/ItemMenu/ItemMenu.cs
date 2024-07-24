@@ -1,166 +1,95 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class ItemMenu : MonoBehaviour
+public class ItemMenu : Singleton<ItemMenu>
 {
-    public static ItemMenu instance;
-    private string objectTag = "Preset"; // Tag to identify objects to be added to the menu
-    private GameObject menuPanel;
-
-    void Awake()
-    {
-        // シングルトンインスタンスの設定
-        if (instance == null)
-        {
-            instance = this;
-            DontDestroyOnLoad(gameObject); // シーンが切り替わってもオブジェクトを保持
-        }
-        else if (instance != this)
-        {
-            Destroy(gameObject);
-        }
-    }
+    private ScrollRect scrollRect;
+    public float scrollSpeed = 2.0f; // Scroll speed
 
     void Start()
     {
-        SetupCanvas();
-        SetupMenuPanel();
-        SetupPanelImage();
-        SetupLayoutGroup();
-    }
-
-    public static ItemMenu Instance
-    {
-        get
-        {
-            if (instance == null)
-            {
-                instance = FindObjectOfType<ItemMenu>();
-                if (instance == null)
-                {
-                    Debug.LogError("ItemMenu instance not found in the scene!");
-                }
-            }
-            return instance;
-        }
-    }
-
-    // Method to set up the Canvas component
-    void SetupCanvas()
-    {
-        Canvas canvas = GetComponent<Canvas>();
-        if (canvas == null)
-        {
-            Debug.LogError("Canvas component not found on this GameObject!");
-            return;
-        }
-
-        CanvasScaler canvasScaler = canvas.GetComponent<CanvasScaler>();
-        if (canvasScaler == null)
-        {
-            canvasScaler = canvas.gameObject.AddComponent<CanvasScaler>();
-        }
-
+        // Create Canvas
+        GameObject canvasGO = new GameObject("Canvas");
+        Canvas canvas = canvasGO.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        CanvasScaler canvasScaler = canvasGO.AddComponent<CanvasScaler>();
         canvasScaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         canvasScaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
-        canvasScaler.matchWidthOrHeight = 0.3f;
+        canvasScaler.matchWidthOrHeight = 0.5f;
+        canvasGO.AddComponent<GraphicRaycaster>();
+
+        // Create Scroll View
+        GameObject scrollViewGO = new GameObject("ScrollView");
+        scrollViewGO.transform.SetParent(canvasGO.transform);
+        RectTransform scrollViewRect = scrollViewGO.AddComponent<RectTransform>();
+        scrollViewRect.sizeDelta = new Vector2(Screen.width, 100); // Adjust size as needed
+        scrollViewRect.anchorMin = new Vector2(0.5f, 0f); // Anchor to the bottom
+        scrollViewRect.anchorMax = new Vector2(0.5f, 0f); // Anchor to the bottom
+        scrollViewRect.pivot = new Vector2(0.5f, 0f); // Pivot to the bottom center
+        scrollViewRect.anchoredPosition = new Vector2(0, 10); // Position with some padding
+        scrollRect = scrollViewGO.AddComponent<ScrollRect>();
+        scrollRect.horizontal = true;
+        scrollRect.vertical = false;
+
+        // Scroll View Mask Image
+        Image scrollViewImage = scrollViewGO.AddComponent<Image>();
+        scrollViewImage.color = new Color(1, 1, 1, 0.5f);
+        scrollViewGO.AddComponent<Mask>();
+
+        // Create Content
+        GameObject contentGO = new GameObject("Content");
+        contentGO.transform.SetParent(scrollViewGO.transform);
+        RectTransform contentRect = contentGO.AddComponent<RectTransform>();
+        contentRect.sizeDelta = new Vector2(1200, 200); // Adjust size as needed
+        contentRect.anchoredPosition = new Vector2(0, 0);
+
+        HorizontalLayoutGroup layoutGroup = contentGO.AddComponent<HorizontalLayoutGroup>();
+        layoutGroup.childControlWidth = false;
+        layoutGroup.childControlHeight = false;
+        layoutGroup.childForceExpandWidth = false;
+        layoutGroup.childForceExpandHeight = false;
+        layoutGroup.spacing = 10f; // Space between items
+        layoutGroup.padding = new RectOffset(10, 10, 10, 10); // Padding of 10px on all sides
+
+        // Link Scroll View and Content
+        scrollRect.content = contentRect;
+
+        // Add color-changing Image elements
+        for (int i = 0; i < 5; i++)
+        {
+            GameObject imageGO = new GameObject("Image" + i);
+            imageGO.transform.SetParent(contentGO.transform);
+            RectTransform imageRect = imageGO.AddComponent<RectTransform>();
+            imageRect.sizeDelta = new Vector2(200, 200); // Size of each item
+
+            Image image = imageGO.AddComponent<Image>();
+            image.color = new Color(Random.value, Random.value, Random.value); // Random color
+        }
     }
 
-    // Method to set up the menu panel
-    void SetupMenuPanel()
+    void Update()
     {
-        menuPanel = GameObject.Find("MenuPanel");
-        if (menuPanel == null)
+        // Input for left arrow key
+        if (Input.GetKey(KeyCode.LeftArrow))
         {
-            Debug.LogError("MenuPanel not found in the scene!");
-            return;
+            scrollRect.horizontalNormalizedPosition -= scrollSpeed * Time.deltaTime;
         }
-
-        RectTransform canvasRectTransform = GetComponent<RectTransform>();
-        RectTransform menuPanelRectTransform = menuPanel.GetComponent<RectTransform>();
-        menuPanelRectTransform.SetAnchor(AnchorPresets.BottomCenter);
-
-        float screenWidth = canvasRectTransform.sizeDelta.x;
-        float screenHeight = canvasRectTransform.sizeDelta.y;
-
-        float width = screenWidth * 0.8f;
-        float height = screenHeight * 0.2f;
-        float xPosition = 0f;
-        float yPosition = 0f;
-
-        menuPanelRectTransform.sizeDelta = new Vector2(width, height);
-        menuPanelRectTransform.anchoredPosition = new Vector2(xPosition, yPosition);
-    }
-
-    // Method to set up the panel's image component
-    void SetupPanelImage()
-    {
-        if (menuPanel == null)
+        // Input for right arrow key
+        if (Input.GetKey(KeyCode.RightArrow))
         {
-            Debug.LogError("MenuPanel not found in the scene!");
-            return;
-        }
-
-        Image panelImage = menuPanel.GetComponent<Image>();
-        if (panelImage == null)
-        {
-            panelImage = menuPanel.AddComponent<Image>();
-        }
-
-        panelImage.color = new Color(58f / 255f, 58f / 255f, 58f / 255f, 0.3f);
-    }
-
-    // Method to set up the menu panel's layout group
-    void SetupLayoutGroup()
-    {
-        if (menuPanel == null)
-        {
-            Debug.LogError("MenuPanel not found in the scene!");
-            return;
-        }
-
-        HorizontalLayoutGroup layoutGroup = menuPanel.GetComponent<HorizontalLayoutGroup>();
-        if (layoutGroup == null)
-        {
-            layoutGroup = menuPanel.AddComponent<HorizontalLayoutGroup>();
-            layoutGroup.childControlWidth = false;
-            layoutGroup.childControlHeight = false;
-            layoutGroup.childForceExpandWidth = false;
-            layoutGroup.childForceExpandHeight = false;
-            layoutGroup.spacing = 10f;
+            scrollRect.horizontalNormalizedPosition += scrollSpeed * Time.deltaTime;
         }
     }
 
     // Method to set the visibility of the menu panel
     public void SetPanelVisibility(bool visible)
     {
-        if (menuPanel == null)
+        if (scrollRect == null)
         {
-            Debug.LogError("MenuPanel not found in the scene!");
+            Debug.LogError("ScrollRect not found in the scene!");
             return;
         }
 
-        menuPanel.SetActive(visible);
-    }
-
-    // Method to instantiate a prefab as a menu item
-    public void InstantiateMenuItem(GameObject prefab)
-    {
-        if (menuPanel == null)
-        {
-            Debug.LogError("MenuPanel not found in the scene!");
-            return;
-        }
-
-        GameObject item = Instantiate(prefab);
-        item.transform.SetParent(menuPanel.transform, false);
-
-        // You can add additional customization here if needed
-    }
-
-    // Example method for handling client-triggered prefab instantiation
-    public void HandleClientPrefabInstantiation(GameObject clientPrefab)
-    {
-        InstantiateMenuItem(clientPrefab);
+        scrollRect.gameObject.SetActive(visible);
     }
 }

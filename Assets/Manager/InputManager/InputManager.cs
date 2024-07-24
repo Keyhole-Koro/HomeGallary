@@ -12,7 +12,7 @@ public class InputManager : MonoBehaviour
     {
         if (Input.GetKeyUp(KeyCode.I))
         {
-            ScreenManager.Instance.OnIKeyDown();
+            ModeManager.Instance.On_I_KeyDown();
         }
     }
 }
