@@ -1,0 +1,38 @@
+[
+    {
+        "id": "item1",
+        "dataType": "image",
+        "filePath": "Assets/Object/Images/image1.png",
+        "tags": ["tag1", "tag2"]
+    },
+    {
+        "id": "item2",
+        "dataType": "image",
+        "filePath": "Assets/Object/Images/image2.png",
+        "tags": ["tag3", "tag4"]
+    },
+    {
+        "id": "item3",
+        "dataType": "image",
+        "filePath": "Assets/Object/Images/image3.png",
+        "tags": ["tag3", "tag4"]
+    },
+    {
+        "id": "item4",
+        "dataType": "image",
+        "filePath": "Assets/Object/Images/image1.png",
+        "tags": ["tag1", "tag2"]
+    },
+    {
+        "id": "item5",
+        "dataType": "image",
+        "filePath": "Assets/Object/Images/image2.png",
+        "tags": ["tag3", "tag4"]
+    },
+    {
+        "id": "item6",
+        "dataType": "image",
+        "filePath": "Assets/Object/Images/image3.png",
+        "tags": ["tag3", "tag4"]
+    }
+]
