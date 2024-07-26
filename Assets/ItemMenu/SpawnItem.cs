@@ -1,3 +1,4 @@
+using System.Runtime;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -87,6 +88,8 @@ public class SpawnItem : MonoBehaviour
 
         // Position the cuboid at the center of the scene
         cuboid.transform.position = new Vector3(1, 1, 1);
+
+        InitializeTransform(cuboid);
     }
 
     // Loads a texture from a file path
@@ -104,5 +107,35 @@ public class SpawnItem : MonoBehaviour
             Debug.LogError($"Image file not found: {filePath}");
             return null;
         }
+    }
+
+    private void InitializeTransform(GameObject gObject)
+    {
+        // Get the player's forward direction
+        Vector3 playerForward = PlayerController.Instance.transform.forward;
+
+        // Define the distance to place the object in front of the player
+        float distanceInFront = 1.5f;
+
+        // Calculate the new position
+        Vector3 newPosition =
+            PlayerController.Instance.GetPlayerPosition()
+            + playerForward * distanceInFront
+            + new Vector3(0, 1.5f, 0);
+
+        // Set the object's position
+        gObject.transform.position = newPosition;
+
+        // Get the camera's position
+        Vector3 cameraPosition = PlayerController.Instance.GetGlobalCameraPosition();
+
+        // Calculate the direction from the object to the camera
+        Vector3 directionToCamera = cameraPosition - newPosition;
+
+        // Calculate the rotation needed for the object's front face to face the camera
+        Quaternion targetRotation = Quaternion.LookRotation(-directionToCamera);
+
+        // Set the object's rotation
+        gObject.transform.rotation = targetRotation;
     }
 }

@@ -12,8 +12,6 @@ public class PlayerController : Singleton<PlayerController>
 
     void Start()
     {
-        transform.position = new Vector3(0f, 1f, 0f); // Set initial position
-
         playerCamera = GetComponentInChildren<Camera>(); // Get the camera from the child objects
 
         if (playerCamera == null)
@@ -86,5 +84,16 @@ public class PlayerController : Singleton<PlayerController>
     public void DisableMove()
     {
         movable = false;
+    }
+
+    // Function to get the player's position
+    public Vector3 GetPlayerPosition()
+    {
+        return transform.position;
+    }
+
+    public Vector3 GetGlobalCameraPosition()
+    {
+        return GetPlayerPosition() + playerCamera.transform.localPosition;
     }
 }
