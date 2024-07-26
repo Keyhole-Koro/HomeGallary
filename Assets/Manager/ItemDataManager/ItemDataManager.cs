@@ -14,7 +14,7 @@ public class ItemDataManager : Singleton<ItemDataManager>
         public List<string> tags;
     }
 
-    public string jsonFilePath = "Assets/ItemData/data.json";
+    string jsonFilePath = "Assets/ItemMenu/ItemData/data.json";
     public List<ItemData> itemDataList = new List<ItemData>();
     private string lastModifiedTime;
 

@@ -51,4 +51,16 @@ public class MouseController : Singleton<MouseController>
     {
         Cursor.lockState = lockMode;
     }
+
+    // Method to get the current rotation angle around the x-axis
+    public float GetXRotation()
+    {
+        return xRotation;
+    }
+
+    // Method to get the current rotation of the player object
+    public Quaternion GetPlayerBodyRotation()
+    {
+        return playerBody.rotation;
+    }
 }

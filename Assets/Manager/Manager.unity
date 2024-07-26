@@ -195,7 +195,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9ce01f4e3324f4414bbc9a8b16980291, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  jsonFilePath: Assets/ItemData/data.json
+  jsonFilePath: ItemMenu
   itemDataList: []
 --- !u!4 &1564824549
 Transform:
