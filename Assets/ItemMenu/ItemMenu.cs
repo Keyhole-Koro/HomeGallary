@@ -149,6 +149,16 @@ public class ItemMenu : Singleton<ItemMenu>
                 itemImage = itemGO.AddComponent<Image>();
             }
 
+            // Get or add the Button component and set up click listener
+            Button itemButton = itemGO.GetComponent<Button>();
+            if (itemButton == null)
+            {
+                itemButton = itemGO.AddComponent<Button>();
+            }
+
+            // Set up the click event
+            itemButton.onClick.AddListener(() => InputManager.Instance.OnItemInMenuClicked(item));
+
             // Set the Image component to preserve aspect ratio
             itemImage.preserveAspect = true;
 

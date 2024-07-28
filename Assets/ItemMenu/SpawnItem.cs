@@ -3,30 +3,24 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SpawnItem : MonoBehaviour
+public class SpawnItem : Singleton<SpawnItem>
 {
     float maxWidth = 1.0f; // Maximum width of the cuboid
     float maxHeight = 1.0f; // Maximum height of the cuboid
     float cuboidDepth = 0.1f; // Fixed depth of the cuboid
     string filePath = "Assets/Object/Images/MainAfter.jpg"; // Path to the image
 
-    void Start()
+    public GameObject SpawnItemObject(ItemDataManager.ItemData itemData)
     {
-        // Example ItemData instance
-        ItemDataManager.ItemData itemData = new ItemDataManager.ItemData
+        if (itemData.dataType == "image")
         {
-            id = "example",
-            dataType = "image",
-            filePath = filePath,
-            tags = new List<string> { "exampleTag" }
-        };
-
-        // Call the function to create the cuboid with the image
-        CreateImageItem(itemData);
+            return CreateImageItem(itemData);
+        }
+        return null;
     }
 
     // Creates a cuboid and applies an image texture to one face based on ItemData
-    public void CreateImageItem(ItemDataManager.ItemData itemData)
+    private GameObject CreateImageItem(ItemDataManager.ItemData itemData)
     {
         // Load the texture from the file path
         Texture2D imageTexture = LoadTexture(itemData.filePath);
@@ -34,7 +28,7 @@ public class SpawnItem : MonoBehaviour
         if (imageTexture == null)
         {
             Debug.LogError("Failed to load texture.");
-            return;
+            return null;
         }
 
         // Calculate cuboid size based on image dimensions
@@ -72,6 +66,7 @@ public class SpawnItem : MonoBehaviour
 
         // Create the cuboid
         GameObject cuboid = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        cuboid.name = "image_item_" + itemData.id;
         cuboid.transform.localScale = cuboidSize;
 
         // Create a new material with transparency
@@ -83,13 +78,14 @@ public class SpawnItem : MonoBehaviour
         Renderer renderer = cuboid.GetComponent<Renderer>();
         renderer.material = material;
 
-        MeshUtils meshUtils = new MeshUtils();
-        meshUtils.ApplyFrontFaceTexture(cuboid, imageTexture);
+        MeshUtils.Instance.ApplyFrontFaceTexture(cuboid, imageTexture);
 
         // Position the cuboid at the center of the scene
         cuboid.transform.position = new Vector3(1, 1, 1);
 
         InitializeTransform(cuboid);
+
+        return cuboid;
     }
 
     // Loads a texture from a file path
@@ -112,22 +108,23 @@ public class SpawnItem : MonoBehaviour
     private void InitializeTransform(GameObject gObject)
     {
         // Get the player's forward direction
-        Vector3 playerForward = PlayerController.Instance.transform.forward;
+        Vector3 playerCameraForward = CameraController.Instance.transform.forward;
 
         // Define the distance to place the object in front of the player
         float distanceInFront = 1.5f;
 
         // Calculate the new position
         Vector3 newPosition =
-            PlayerController.Instance.GetPlayerPosition()
-            + playerForward * distanceInFront
-            + new Vector3(0, 1.5f, 0);
+            PlayerController.Instance.GetPlayerPosition() + playerCameraForward * distanceInFront;
+
+        Vector3 playerCameraPosition = CameraController.Instance.GetCameraPosition();
+        newPosition.y = playerCameraPosition.y;
 
         // Set the object's position
         gObject.transform.position = newPosition;
 
         // Get the camera's position
-        Vector3 cameraPosition = PlayerController.Instance.GetGlobalCameraPosition();
+        Vector3 cameraPosition = CameraController.Instance.GetCameraPosition();
 
         // Calculate the direction from the object to the camera
         Vector3 directionToCamera = cameraPosition - newPosition;

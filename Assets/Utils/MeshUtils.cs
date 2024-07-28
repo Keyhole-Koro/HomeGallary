@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class MeshUtils : MonoBehaviour
+public class MeshUtils : Singleton<MeshUtils>
 {
     public void ApplyFrontFaceTexture(GameObject cubeObject, Texture2D frontTexture)
     {

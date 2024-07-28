@@ -2,15 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-enum Mode
-{
-    VIEW,
-    EDIT,
-};
-
 public class ModeManager : Singleton<ModeManager>
 {
-    bool editable = false;
+    bool isOpenItemMenuMode = false;
 
     void Start() { }
 
@@ -19,6 +13,20 @@ public class ModeManager : Singleton<ModeManager>
 
     public void On_I_KeyDown()
     {
-        EditMode.Instance.TurnOn();
+        isOpenItemMenuMode = !isOpenItemMenuMode;
+        if (isOpenItemMenuMode)
+        {
+            OpenItemMenuMode.Instance.TurnOn();
+        }
+        else
+        {
+            OpenItemMenuMode.Instance.TurnOff();
+        }
+    }
+
+    public void TrunOffOpenItemMenuMode()
+    {
+        OpenItemMenuMode.Instance.TurnOff();
+        isOpenItemMenuMode = false;
     }
 }
