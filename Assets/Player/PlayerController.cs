@@ -19,11 +19,11 @@ public class PlayerController : Singleton<PlayerController>
 
     void Update()
     {
-        if (movable && CameraController.Instance != null)
+        if (movable && PlayerCameraController.Instance != null)
         {
-            Vector3 moveDirection = CameraController.Instance.GetCameraRotation();
+            Vector3 moveDirection = PlayerCameraController.Instance.GetCameraRotation();
             transform.Translate(moveDirection.normalized * moveSpeed * Time.deltaTime, Space.World);
-            transform.forward = CameraController.Instance.transform.forward;
+            transform.forward = PlayerCameraController.Instance.transform.forward;
         }
     }
 

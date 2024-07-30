@@ -3,6 +3,7 @@ using UnityEngine;
 public class CreateRoom : MonoBehaviour
 {
     float planeSize = 20f; // Size of the plane
+    float wallThickness = 0.1f; // Thickness of the walls
 
     void Start()
     {
@@ -18,15 +19,23 @@ public class CreateRoom : MonoBehaviour
     {
         float planeHeight = 0.1f; // Height of the plane
 
+        // Check if the layer exists
+        int roomLayer = LayerMask.NameToLayer("RoomLayer");
+        if (roomLayer == -1)
+        {
+            Debug.LogError(
+                "Layer 'roomLayer' does not exist. Please add it in the Tags and Layers settings."
+            );
+            return;
+        }
+
         GameObject plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
         plane.name = "Floor"; // Set a name for the plane
-        plane.transform.position = new Vector3(0f, -0.05f, 0f); // Set the position of the plane slightly below the center
-        plane.transform.localScale = new Vector3(planeSize, planeHeight, planeSize); // Set the scale of the plane
+        plane.tag = "Floor"; // Set tag for the plane
+        plane.layer = roomLayer; // Set the layer to roomLayer
+        plane.transform.position = new Vector3(0f, -planeHeight / 2f, 0f); // Set the position of the plane slightly below the center
+        plane.transform.localScale = new Vector3(planeSize / 10f, 1f, planeSize / 10f); // Set the scale of the plane
         plane.GetComponent<Renderer>().material.color = Color.gray; // Set the color of the plane to gray
-
-        // Add BoxCollider to the plane
-        BoxCollider planeCollider = plane.AddComponent<BoxCollider>();
-        planeCollider.size = new Vector3(planeSize, planeHeight, planeSize); // Adjust collider size to match plane's scale
 
         // Set the parent GameObject
         plane.transform.SetParent(parent);
@@ -36,6 +45,16 @@ public class CreateRoom : MonoBehaviour
     void CreateWalls(Transform parent)
     {
         float wallHeight = 4f; // Height of the walls
+
+        // Check if the layer exists
+        int roomLayer = LayerMask.NameToLayer("RoomLayer");
+        if (roomLayer == -1)
+        {
+            Debug.LogError(
+                "Layer 'roomLayer' does not exist. Please add it in the Tags and Layers settings."
+            );
+            return;
+        }
 
         // Get the position and scale of the plane
         Vector3 planePosition = Vector3.zero; // Center of the plane
@@ -47,13 +66,11 @@ public class CreateRoom : MonoBehaviour
         // Wall 1 (left)
         GameObject wall1 = GameObject.CreatePrimitive(PrimitiveType.Cube);
         wall1.name = "Wall1"; // Set a name for the wall
+        wall1.tag = "Wall"; // Set tag for the wall
+        wall1.layer = roomLayer; // Set the layer to roomLayer
         wall1.transform.position = planePosition + new Vector3(-halfWidth, wallHeight / 2f, 0f);
-        wall1.transform.localScale = new Vector3(1f, wallHeight, planeSize);
+        wall1.transform.localScale = new Vector3(wallThickness, wallHeight, planeSize);
         wall1.GetComponent<Renderer>().material.color = Color.gray;
-
-        // Add BoxCollider to Wall 1
-        BoxCollider wall1Collider = wall1.AddComponent<BoxCollider>();
-        wall1Collider.size = new Vector3(1f, wallHeight, planeSize);
 
         // Set the parent GameObject
         wall1.transform.SetParent(parent);
@@ -61,13 +78,11 @@ public class CreateRoom : MonoBehaviour
         // Wall 2 (right)
         GameObject wall2 = GameObject.CreatePrimitive(PrimitiveType.Cube);
         wall2.name = "Wall2"; // Set a name for the wall
+        wall2.tag = "Wall"; // Set tag for the wall
+        wall2.layer = roomLayer; // Set the layer to roomLayer
         wall2.transform.position = planePosition + new Vector3(halfWidth, wallHeight / 2f, 0f);
-        wall2.transform.localScale = new Vector3(1f, wallHeight, planeSize);
+        wall2.transform.localScale = new Vector3(wallThickness, wallHeight, planeSize);
         wall2.GetComponent<Renderer>().material.color = Color.gray;
-
-        // Add BoxCollider to Wall 2
-        BoxCollider wall2Collider = wall2.AddComponent<BoxCollider>();
-        wall2Collider.size = new Vector3(1f, wallHeight, planeSize);
 
         // Set the parent GameObject
         wall2.transform.SetParent(parent);
@@ -75,13 +90,11 @@ public class CreateRoom : MonoBehaviour
         // Wall 3 (top)
         GameObject wall3 = GameObject.CreatePrimitive(PrimitiveType.Cube);
         wall3.name = "Wall3"; // Set a name for the wall
+        wall3.tag = "Wall"; // Set tag for the wall
+        wall3.layer = roomLayer; // Set the layer to roomLayer
         wall3.transform.position = planePosition + new Vector3(0f, wallHeight / 2f, halfLength);
-        wall3.transform.localScale = new Vector3(planeSize, wallHeight, 1f);
+        wall3.transform.localScale = new Vector3(planeSize, wallHeight, wallThickness);
         wall3.GetComponent<Renderer>().material.color = Color.gray;
-
-        // Add BoxCollider to Wall 3
-        BoxCollider wall3Collider = wall3.AddComponent<BoxCollider>();
-        wall3Collider.size = new Vector3(planeSize, wallHeight, 1f);
 
         // Set the parent GameObject
         wall3.transform.SetParent(parent);
@@ -89,13 +102,11 @@ public class CreateRoom : MonoBehaviour
         // Wall 4 (bottom)
         GameObject wall4 = GameObject.CreatePrimitive(PrimitiveType.Cube);
         wall4.name = "Wall4"; // Set a name for the wall
+        wall4.tag = "Wall"; // Set tag for the wall
+        wall4.layer = roomLayer; // Set the layer to roomLayer
         wall4.transform.position = planePosition + new Vector3(0f, wallHeight / 2f, -halfLength);
-        wall4.transform.localScale = new Vector3(planeSize, wallHeight, 1f);
+        wall4.transform.localScale = new Vector3(planeSize, wallHeight, wallThickness);
         wall4.GetComponent<Renderer>().material.color = Color.gray;
-
-        // Add BoxCollider to Wall 4
-        BoxCollider wall4Collider = wall4.AddComponent<BoxCollider>();
-        wall4Collider.size = new Vector3(planeSize, wallHeight, 1f);
 
         // Set the parent GameObject
         wall4.transform.SetParent(parent);

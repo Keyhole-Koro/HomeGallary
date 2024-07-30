@@ -4,8 +4,6 @@ using UnityEngine;
 
 public class OpenItemMenuMode : Singleton<OpenItemMenuMode>
 {
-    bool editable = false;
-
     // Start is called before the first frame update
     void Start() { }
 
@@ -15,14 +13,14 @@ public class OpenItemMenuMode : Singleton<OpenItemMenuMode>
     public void TurnOn()
     {
         ScreenManager.Instance.ShowItemMenu();
-        CameraController.Instance.SetPlayMode();
         PlayerController.Instance.DisableMove();
+        PlayerCameraController.Instance.SetCursorMode();
     }
 
     public void TurnOff()
     {
         ScreenManager.Instance.HideItemMenu();
-        CameraController.Instance.SetSelectMode();
         PlayerController.Instance.EnableMove();
+        PlayerCameraController.Instance.SetViewMode();
     }
 }

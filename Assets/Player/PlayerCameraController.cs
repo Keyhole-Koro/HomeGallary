@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class CameraController : Singleton<CameraController>
+public class PlayerCameraController : Singleton<PlayerCameraController>
 {
     public float mouseSensitivity = 100f;
     private float xRotation = 0f;
@@ -16,7 +16,7 @@ public class CameraController : Singleton<CameraController>
 
     void Update()
     {
-        if (!isPlayMode)
+        if (isPlayMode)
         {
             // Get mouse input for rotation
             float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
@@ -31,23 +31,21 @@ public class CameraController : Singleton<CameraController>
 
             // Apply rotations and update camera position
             transform.rotation = Quaternion.Euler(xRotation, yRotation, 0f);
-            transform.position =
-                PlayerController.Instance.transform.position + new Vector3(0f, 1f, 0f);
         }
     }
 
-    public void SetPlayMode()
+    public void SetViewMode()
     {
         isPlayMode = true;
-        SetCursorLockState(CursorLockMode.None);
-        Cursor.visible = true;
-    }
-
-    public void SetSelectMode()
-    {
-        isPlayMode = false;
         SetCursorLockState(CursorLockMode.Locked);
         Cursor.visible = false;
+    }
+
+    public void SetCursorMode()
+    {
+        isPlayMode = false;
+        SetCursorLockState(CursorLockMode.None);
+        Cursor.visible = true;
     }
 
     public Vector3 GetCameraRotation()

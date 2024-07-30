@@ -6,7 +6,10 @@ public class ModeManager : Singleton<ModeManager>
 {
     bool isOpenItemMenuMode = false;
 
-    void Start() { }
+    void Start()
+    {
+        ViewMode.Instance.TurnOn();
+    }
 
     // Update is called once per frame
     void Update() { }

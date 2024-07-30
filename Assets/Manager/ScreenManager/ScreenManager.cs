@@ -6,7 +6,6 @@ public class ScreenManager : Singleton<ScreenManager>
 
     void Start()
     {
-        // 初期状態で非表示にする
         if (ItemMenu.Instance != null)
         {
             ItemMenu.Instance.SetPanelVisibility(false);

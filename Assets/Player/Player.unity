@@ -136,7 +136,7 @@ GameObject:
   - component: {fileID: 147466512}
   - component: {fileID: 147466511}
   m_Layer: 0
-  m_Name: Camera
+  m_Name: PlayerCamera
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -169,7 +169,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mouseSensitivity: 300
-  playerBody: {fileID: 1544969805}
 --- !u!81 &147466512
 AudioListener:
   m_ObjectHideFlags: 0
@@ -266,4 +265,3 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 3
-  playerCamera: {fileID: 147466513}

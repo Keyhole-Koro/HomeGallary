@@ -1,4 +1,3 @@
-using System.Runtime;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -19,7 +18,6 @@ public class SpawnItem : Singleton<SpawnItem>
         return null;
     }
 
-    // Creates a cuboid and applies an image texture to one face based on ItemData
     private GameObject CreateImageItem(ItemDataManager.ItemData itemData)
     {
         // Load the texture from the file path
@@ -80,15 +78,15 @@ public class SpawnItem : Singleton<SpawnItem>
 
         MeshUtils.Instance.ApplyFrontFaceTexture(cuboid, imageTexture);
 
-        // Position the cuboid at the center of the scene
-        cuboid.transform.position = new Vector3(1, 1, 1);
-
+        // Set the initial position and rotation
         InitializeTransform(cuboid);
+
+        // Add the `PlaceItem` script to handle movement
+        cuboid.AddComponent<PlaceItem>();
 
         return cuboid;
     }
 
-    // Loads a texture from a file path
     private Texture2D LoadTexture(string filePath)
     {
         if (System.IO.File.Exists(filePath))
@@ -107,32 +105,24 @@ public class SpawnItem : Singleton<SpawnItem>
 
     private void InitializeTransform(GameObject gObject)
     {
-        // Get the player's forward direction
-        Vector3 playerCameraForward = CameraController.Instance.transform.forward;
+        Vector3 playerCameraForward = PlayerCameraController.Instance.transform.forward;
 
-        // Define the distance to place the object in front of the player
         float distanceInFront = 1.5f;
 
-        // Calculate the new position
         Vector3 newPosition =
             PlayerController.Instance.GetPlayerPosition() + playerCameraForward * distanceInFront;
 
-        Vector3 playerCameraPosition = CameraController.Instance.GetCameraPosition();
+        Vector3 playerCameraPosition = PlayerCameraController.Instance.GetCameraPosition();
         newPosition.y = playerCameraPosition.y;
 
-        // Set the object's position
         gObject.transform.position = newPosition;
 
-        // Get the camera's position
-        Vector3 cameraPosition = CameraController.Instance.GetCameraPosition();
+        Vector3 cameraPosition = PlayerCameraController.Instance.GetCameraPosition();
 
-        // Calculate the direction from the object to the camera
         Vector3 directionToCamera = cameraPosition - newPosition;
 
-        // Calculate the rotation needed for the object's front face to face the camera
         Quaternion targetRotation = Quaternion.LookRotation(-directionToCamera);
 
-        // Set the object's rotation
         gObject.transform.rotation = targetRotation;
     }
 }
