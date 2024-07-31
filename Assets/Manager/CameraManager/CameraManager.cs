@@ -75,8 +75,6 @@ public class CameraManager : Singleton<CameraManager>
             cameraDict[name] = camera;
         }
 
-        Debug.Log("Camera created and registered: " + name);
-
         return cameraObject;
     }
 }

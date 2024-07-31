@@ -4,6 +4,9 @@ public class CreateRoom : MonoBehaviour
 {
     void Start()
     {
-        RoomManager.Instance.CreateRoom("room", 5);
+        RoomManager.Instance.CreateRoom("room", 5, new Vector3(5, 0, 5), 10f, 0.1f, 4f);
+        print(
+            RoomManager.Instance.GetFloorCenter(RoomManager.Instance.FindGameObjectByName("room"))
+        );
     }
 }
