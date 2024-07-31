@@ -8,6 +8,8 @@ public class PlayerController : Singleton<PlayerController>
 
     void Start()
     {
+        transform.position = new Vector3(0f, 0f, 0f);
+
         // Add Rigidbody if not already present
         rb = gameObject.AddComponent<Rigidbody>();
         rb.freezeRotation = true;

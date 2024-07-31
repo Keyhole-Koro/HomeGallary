@@ -2,11 +2,12 @@ using UnityEngine;
 
 public class PlaceItem : Singleton<PlaceItem>
 {
-    private Camera mainCamera;
+    private Camera camera;
     private float raycastDistance = 300f; // Maximum distance for raycast
     private float moveSpeed = 20f; // Speed at which the item moves towards the target position
     private Vector3 targetPosition; // Current target position
-    private float precision = 0.01f; // Precision (tolerance range) for reaching the target
+    private float precision = 0.1f; // Precision (tolerance range) for reaching the target
+    private float minHeight = 0.5f; // Minimum height to maintain above the ground
 
     private GameObject pointerInstance; // Instance of the pointer
 
@@ -35,7 +36,7 @@ public class PlaceItem : Singleton<PlaceItem>
         if (IsInputActive())
         {
             // Cast a ray from the camera to the mouse or touch position
-            Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
+            Ray ray = camera.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
 
             ifRayCastStarted = true;
@@ -45,9 +46,10 @@ public class PlaceItem : Singleton<PlaceItem>
             {
                 // Update the target position to the hit point
                 targetPosition = hit.point;
+                targetPosition.y = Mathf.Max(targetPosition.y, minHeight); // Ensure the item is above the floor
 
                 // Set the pointer's position to the hit point
-                pointerInstance.transform.position = hit.point;
+                pointerInstance.transform.position = targetPosition;
                 pointerInstance.SetActive(true);
             }
             else
@@ -75,9 +77,9 @@ public class PlaceItem : Singleton<PlaceItem>
     public void UpdateCamera(GameObject cameraObject)
     {
         // Set the camera from the provided game object
-        mainCamera = cameraObject.GetComponent<Camera>();
+        camera = cameraObject.GetComponent<Camera>();
 
-        if (mainCamera == null)
+        if (camera == null)
         {
             Debug.LogError("Provided GameObject does not contain a Camera component.");
         }
@@ -120,10 +122,28 @@ public class PlaceItem : Singleton<PlaceItem>
             // Snap the item to the target position to avoid precision issues
             transform.position = target;
 
-            // Move the camera close to the item when it reaches the target position
+            // Calculate the target position for the camera
             Vector3 cameraTargetPosition = transform.position - transform.forward * cameraDistance;
-            mainCamera.transform.position = Vector3.Lerp(
-                mainCamera.transform.position,
+
+            // Perform a raycast from the item to the target camera position to check for obstructions
+            RaycastHit hit;
+            if (
+                Physics.Raycast(
+                    transform.position,
+                    cameraTargetPosition - transform.position,
+                    out hit,
+                    cameraDistance,
+                    hitLayers
+                )
+            )
+            {
+                // Adjust the camera position to just before hitting the obstruction
+                cameraTargetPosition = hit.point;
+            }
+
+            // Smoothly move the camera to the target position
+            camera.transform.position = Vector3.Lerp(
+                camera.transform.position,
                 cameraTargetPosition,
                 cameraMoveSpeed * Time.deltaTime
             );
@@ -132,25 +152,23 @@ public class PlaceItem : Singleton<PlaceItem>
 
     void AdjustCameraView()
     {
-        if (mainCamera != null && pointerInstance != null)
+        if (camera != null && pointerInstance != null)
         {
             // Check if the pointer is outside the camera's view frustum
-            Vector3 screenPoint = mainCamera.WorldToViewportPoint(
-                pointerInstance.transform.position
-            );
+            Vector3 screenPoint = camera.WorldToViewportPoint(pointerInstance.transform.position);
 
             // If the pointer is out of the camera's view, rotate the camera
             if (screenPoint.x < 0 || screenPoint.x > 1 || screenPoint.y < 0 || screenPoint.y > 1)
             {
                 // Calculate the direction to rotate the camera
                 Vector3 directionToPointer =
-                    pointerInstance.transform.position - mainCamera.transform.position;
+                    pointerInstance.transform.position - camera.transform.position;
 
                 // Calculate the desired rotation
                 Quaternion targetRotation = Quaternion.LookRotation(directionToPointer, Vector3.up);
 
                 // Smoothly rotate the camera to face the pointer while limiting the vertical rotation
-                Quaternion currentRotation = mainCamera.transform.rotation;
+                Quaternion currentRotation = camera.transform.rotation;
                 Quaternion newRotation = Quaternion.Slerp(
                     currentRotation,
                     targetRotation,
@@ -163,7 +181,7 @@ public class PlaceItem : Singleton<PlaceItem>
                 newRotation = Quaternion.Euler(eulerAngles);
 
                 // Apply the rotation to the camera
-                mainCamera.transform.rotation = newRotation;
+                camera.transform.rotation = newRotation;
             }
         }
     }

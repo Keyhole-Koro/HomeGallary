@@ -26,12 +26,7 @@ public class InputManager : Singleton<InputManager>
         Quaternion currentRotation =
             PlayerCameraController.Instance.GetPlayerBodytransformRotation();
 
-        Quaternion newRotation = new Quaternion(
-            0f,
-            currentRotation.y,
-            currentRotation.z,
-            currentRotation.w
-        );
+        Quaternion newRotation = new Quaternion(0f, currentRotation.y, 0f, currentRotation.w);
 
         // Set the new rotation
         cameraObject.transform.rotation = newRotation;
