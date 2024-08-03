@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -14,7 +15,7 @@ public class InputManager : Singleton<InputManager>
         }
     }
 
-    public void OnItemInMenuClicked(ItemDataManager.ItemData item)
+    public void OnItemInMenuClicked(ItemData item)
     {
         GameObject spawnedItem = SpawnItem.Instance.SpawnItemObject(item);
         ModeManager.Instance.TrunOffOpenItemMenuMode();
@@ -37,5 +38,11 @@ public class InputManager : Singleton<InputManager>
         PlayerCameraController.Instance.SetCursorMode();
 
         PlaceItem.Instance.UpdateCamera(cameraObject);
+    }
+
+    public void OnItemPlacementDoneButtonClicked()
+    {
+        PlaceItem.Instance.FinishItemPlacement();
+        print("item placement finished");
     }
 }

@@ -7,9 +7,8 @@ public class SpawnItem : Singleton<SpawnItem>
     float maxWidth = 1.0f; // Maximum width of the cuboid
     float maxHeight = 1.0f; // Maximum height of the cuboid
     float cuboidDepth = 0.1f; // Fixed depth of the cuboid
-    string filePath = "Assets/Object/Images/MainAfter.jpg"; // Path to the image
 
-    public GameObject SpawnItemObject(ItemDataManager.ItemData itemData)
+    public GameObject SpawnItemObject(ItemData itemData)
     {
         if (itemData.dataType == "image")
         {
@@ -18,7 +17,7 @@ public class SpawnItem : Singleton<SpawnItem>
         return null;
     }
 
-    private GameObject CreateImageItem(ItemDataManager.ItemData itemData)
+    private GameObject CreateImageItem(ItemData itemData)
     {
         // Load the texture from the file path
         Texture2D imageTexture = LoadTexture(itemData.filePath);

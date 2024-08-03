@@ -106,7 +106,7 @@ public class ItemMenu : Singleton<ItemMenu>
     }
 
     // Updates the menu with a list of item data
-    public void UpdateMenu(List<ItemDataManager.ItemData> itemDataList)
+    public void UpdateMenu(List<ItemData> itemDataList)
     {
         if (scrollRect == null || itemPrefab == null)
         {
@@ -133,7 +133,7 @@ public class ItemMenu : Singleton<ItemMenu>
         contentRect.sizeDelta = new Vector2(totalWidth, contentRect.sizeDelta.y);
 
         // Add new items
-        foreach (ItemDataManager.ItemData item in itemDataList)
+        foreach (ItemData item in itemDataList)
         {
             // Instantiate a new item from the prefab
             GameObject itemGO = Instantiate(itemPrefab, scrollRect.content);

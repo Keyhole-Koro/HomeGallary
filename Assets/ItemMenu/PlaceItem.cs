@@ -1,42 +1,78 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
+using System.Collections;
+using System.Collections.Generic;
 
 public class PlaceItem : Singleton<PlaceItem>
 {
-    private Camera camera;
+    private Camera ItemPlacementCamera;
     private float raycastDistance = 300f;
     private float moveSpeed = 20f;
-    private Vector3 targetPosition;
+    public Vector3 targetPosition;
     private float precision = 0.1f;
     private float minHeight = 0.5f;
-    private float wallDetectionDistance = 1.0f;
-
     private GameObject pointerInstance;
-
     public LayerMask hitLayers;
     public float cameraRotationSpeed = 2f;
     public float cameraDistance = 5f;
     public float cameraMoveSpeed = 5f;
 
     private bool ifRayCastStarted = false;
+    private ItemPlacementButton itemPlacementButton;
+
+    EventSystem eventSystem;
 
     void Start()
     {
         targetPosition = transform.position;
         hitLayers = LayerMask.GetMask("RoomLayer");
         CreatePointer();
+
+        itemPlacementButton = ItemPlacementButton.Instance.CreateUI();
     }
 
     void Update()
     {
-        // Check if input is active (mouse or touch input)
+        if (transform.position == targetPosition)
+        {
+            itemPlacementButton.SetVisible();
+        }
+        else
+        {
+            itemPlacementButton.SetInvisible();
+        }
+
         if (IsInputActive())
         {
-            Ray ray = camera.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hit;
-
             ifRayCastStarted = true;
 
-            if (Physics.Raycast(ray, out hit, raycastDistance, hitLayers))
+            if (eventSystem == null)
+                eventSystem = ItemMenuEventSystem.Instance.GetEventSystem();
+
+            // 2D ray
+            Ray ray = ItemPlacementCamera.ScreenPointToRay(Input.mousePosition);
+
+            PointerEventData pointerEventData = new PointerEventData(eventSystem)
+            {
+                position = Input.mousePosition
+            };
+
+            List<RaycastResult> results = new List<RaycastResult>();
+            eventSystem.RaycastAll(pointerEventData, results);
+
+            if (results.Count > 0)
+            {
+                RaycastResult frontMostResult = GetFrontMostResult(results);
+                if (frontMostResult.gameObject != null && frontMostResult.gameObject != null)
+                {
+                    if (frontMostResult.gameObject.name == ItemPlacementButton.Instance.buttonName)
+                    {
+                        InputManager.Instance.OnItemPlacementDoneButtonClicked();
+                    }
+                }
+            }
+            else if /*3D ray*/
+            (Physics.Raycast(ray, out RaycastHit hit, raycastDistance, hitLayers))
             {
                 targetPosition = hit.point;
                 targetPosition.y = Mathf.Max(targetPosition.y, minHeight);
@@ -63,30 +99,54 @@ public class PlaceItem : Singleton<PlaceItem>
         }
     }
 
+    private RaycastResult GetFrontMostResult(List<RaycastResult> results)
+    {
+        if (results.Count == 0)
+        {
+            return default;
+        }
+
+        RaycastResult frontMostResult = results[0];
+        float minDistance = frontMostResult.distance;
+
+        foreach (var result in results)
+        {
+            if (result.distance < minDistance)
+            {
+                minDistance = result.distance;
+                frontMostResult = result;
+            }
+        }
+
+        return frontMostResult;
+    }
+
     void AlignItemToCamera()
     {
-        if (camera != null)
+        if (ItemPlacementCamera != null)
         {
-            Vector3 directionToCamera = transform.position - camera.transform.position;
+            Vector3 directionToCamera = transform.position - ItemPlacementCamera.transform.position;
             Quaternion targetRotation = Quaternion.LookRotation(directionToCamera, Vector3.up);
-            camera.transform.rotation = targetRotation;
+            ItemPlacementCamera.transform.rotation = targetRotation;
         }
     }
 
     void AdjustCameraView()
     {
-        if (camera != null && pointerInstance != null)
+        if (ItemPlacementCamera != null && pointerInstance != null)
         {
-            Vector3 screenPoint = camera.WorldToViewportPoint(pointerInstance.transform.position);
+            Vector3 screenPoint = ItemPlacementCamera.WorldToViewportPoint(
+                pointerInstance.transform.position
+            );
 
-            // If the pointer is out of the camera view, adjust the camera
+            // Adjust the camera if the pointer is out of the camera view
             if (screenPoint.x < 0 || screenPoint.x > 1 || screenPoint.y < 0 || screenPoint.y > 1)
             {
                 Vector3 directionToPointer =
-                    pointerInstance.transform.position - camera.transform.position;
+                    pointerInstance.transform.position - ItemPlacementCamera.transform.position;
                 Quaternion targetRotation = Quaternion.LookRotation(directionToPointer, Vector3.up);
-                camera.transform.rotation = Quaternion.Slerp(
-                    camera.transform.rotation,
+                ItemPlacementCamera.transform.rotation = Quaternion.Slerp(
+                    ItemPlacementCamera.transform.rotation,
                     targetRotation,
                     Time.deltaTime * cameraRotationSpeed
                 );
@@ -96,11 +156,11 @@ public class PlaceItem : Singleton<PlaceItem>
 
     public void UpdateCamera(GameObject cameraObject)
     {
-        camera = cameraObject.GetComponent<Camera>();
+        ItemPlacementCamera = cameraObject.GetComponent<Camera>();
 
-        if (camera == null)
+        if (ItemPlacementCamera == null)
         {
-            Debug.LogError("Provided GameObject does not contain a Camera component.");
+            Debug.LogError("The provided GameObject does not contain a Camera component.");
         }
     }
 
@@ -127,11 +187,10 @@ public class PlaceItem : Singleton<PlaceItem>
         {
             transform.position = target;
 
-            GameObject room = FindRoomContainingTarget(target);
+            RoomData room = RoomManager.Instance.FindRoomContainingPoint(target);
             if (room != null)
             {
-                Vector3 floorCenter = RoomManager.Instance.GetFloorCenter(room);
-                AlignItemToFloor(floorCenter);
+                AlignItemToFloor(room);
             }
 
             Vector3 cameraTargetPosition = transform.position - transform.forward * cameraDistance;
@@ -149,17 +208,24 @@ public class PlaceItem : Singleton<PlaceItem>
                 cameraTargetPosition = hit.point;
             }
 
-            camera.transform.position = Vector3.Lerp(
-                camera.transform.position,
+            ItemPlacementCamera.transform.position = Vector3.Lerp(
+                ItemPlacementCamera.transform.position,
                 cameraTargetPosition,
                 cameraMoveSpeed * Time.deltaTime
             );
         }
     }
 
-    void AlignItemToFloor(Vector3 floorCenter)
+    void AlignItemToFloor(RoomData room)
     {
-        Vector3 wallDirection = GetWallDirectionForPosition(transform.position);
+        GameObject attachingWall = room.findAttachingToWall(transform.position);
+        if (attachingWall == null) /* skip for aligning*/
+        {
+            return;
+        }
+
+        Vector3 floorCenter = room.GetFloorCenter();
+        Vector3 wallDirection = attachingWall.transform.forward;
         Quaternion targetRotation = Quaternion.LookRotation(wallDirection, Vector3.up);
 
         // Add +90 degrees rotation around the y-axis
@@ -198,7 +264,7 @@ public class PlaceItem : Singleton<PlaceItem>
         return closestWall;
     }
 
-    GameObject FindRoomContainingTarget(Vector3 position)
+    GameObject FindAttatchingWall(Vector3 position)
     {
         foreach (GameObject room in GameObject.FindGameObjectsWithTag("Room"))
         {
@@ -222,16 +288,25 @@ public class PlaceItem : Singleton<PlaceItem>
 
     bool IsInputActive()
     {
-        return Input.GetMouseButton(0)
-            || (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Stationary);
+        return Input.GetMouseButton(0);
     }
 
-    bool IsTouchingWall(Vector3 position)
+    public void FinishItemPlacement()
     {
-        RaycastHit hit;
-        return Physics.Raycast(position, Vector3.forward, out hit, wallDetectionDistance, hitLayers)
-            || Physics.Raycast(position, Vector3.back, out hit, wallDetectionDistance, hitLayers)
-            || Physics.Raycast(position, Vector3.left, out hit, wallDetectionDistance, hitLayers)
-            || Physics.Raycast(position, Vector3.right, out hit, wallDetectionDistance, hitLayers);
+        ItemPlacementButton.Instance.DestroyButton();
+        RoomData room = RoomManager.Instance.FindRoomContainingPoint(transform.position);
+
+        if (room != null)
+        {
+            transform.SetParent(room.room.transform);
+        }
+        else
+        {
+            Debug.LogError(
+                "Error: No room found for the item placement at the specified location."
+            );
+        }
+
+        Destroy(this);
     }
 }

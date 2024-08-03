@@ -2,8 +2,6 @@ using UnityEngine;
 
 public class ScreenManager : Singleton<ScreenManager>
 {
-    private bool isInWorkMode = false;
-
     void Start()
     {
         if (ItemMenu.Instance != null)

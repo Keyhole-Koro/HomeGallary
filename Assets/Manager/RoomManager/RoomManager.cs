@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public struct RoomObject
 {
@@ -44,6 +45,8 @@ public class RoomManager : Singleton<RoomManager>
 
     private const bool DEBUG_LOG = false;
 
+    private List<RoomData> rooms = new List<RoomData>(); // List to hold RoomData
+
     public GameObject CreateRoom(
         string roomName,
         int numberOfSides,
@@ -64,13 +67,20 @@ public class RoomManager : Singleton<RoomManager>
         Transform parentTransform = room.transform;
         parentTransform.position = position;
 
-        CreateFlatPolygon(parentTransform, numberOfSides);
-        CreateWalls(parentTransform, numberOfSides);
+        RoomData roomData = new RoomData
+        {
+            room = room,
+            floor = CreateFlatPolygon(parentTransform, numberOfSides),
+            walls = CreateWalls(parentTransform, numberOfSides)
+        };
+
+        // Add new RoomData to the list
+        rooms.Add(roomData);
 
         return room;
     }
 
-    void CreateFlatPolygon(Transform parent, int numberOfSides)
+    GameObject CreateFlatPolygon(Transform parent, int numberOfSides)
     {
         float planeHeight = 0.1f;
 
@@ -80,7 +90,7 @@ public class RoomManager : Singleton<RoomManager>
             LogError(
                 "Layer 'RoomLayer' does not exist. Please add it in the Tags and Layers settings."
             );
-            return;
+            return null;
         }
 
         GameObject polygon = new GameObject("Floor");
@@ -135,21 +145,29 @@ public class RoomManager : Singleton<RoomManager>
         meshRenderer.material.color = Color.gray;
 
         meshCollider.sharedMesh = mesh;
+
+        return polygon;
     }
 
-    void CreateWalls(Transform parent, int numberOfSides)
+    GameObject[] CreateWalls(Transform parent, int numberOfSides)
     {
         int roomLayer = LayerMask.NameToLayer("RoomLayer");
         if (roomLayer == -1)
         {
-            LogError(
+            Debug.LogError(
                 "Layer 'RoomLayer' does not exist. Please add it in the Tags and Layers settings."
             );
-            return;
+            return null; // Return null if the layer does not exist
+        }
+
+        if (numberOfSides < 3)
+        {
+            Debug.LogError("Number of sides must be at least 3 to form a closed room.");
+            return null; // Return null if the number of sides is invalid
         }
 
         float angleStep = 360f / numberOfSides;
-        float halfWidth = wallThickness / 2f;
+        GameObject[] walls = new GameObject[numberOfSides];
 
         for (int i = 0; i < numberOfSides; i++)
         {
@@ -159,11 +177,21 @@ public class RoomManager : Singleton<RoomManager>
             Vector3 start = new Vector3(radius * Mathf.Cos(angle1), 0f, radius * Mathf.Sin(angle1));
             Vector3 end = new Vector3(radius * Mathf.Cos(angle2), 0f, radius * Mathf.Sin(angle2));
 
-            CreateWall(parent, $"Wall{i + 1}", start, end, wallHeight, wallThickness, roomLayer);
+            walls[i] = CreateWall(
+                parent,
+                $"Wall{i + 1}",
+                start,
+                end,
+                wallHeight,
+                wallThickness,
+                roomLayer
+            );
         }
+
+        return walls;
     }
 
-    void CreateWall(
+    GameObject CreateWall(
         Transform parent,
         string name,
         Vector3 start,
@@ -190,14 +218,34 @@ public class RoomManager : Singleton<RoomManager>
         {
             wallRenderer.material.color = Color.gray;
         }
+        return wall;
     }
 
-    // Function to get the center localPosition of the floor
-    public Vector3 GetFloorCenter(GameObject room)
+    private bool IsPointInPolygon(Vector3 point, Vector3[] vertices)
     {
-        if (room != null)
+        int n = vertices.Length;
+        bool inside = false;
+        for (int i = 0, j = n - 1; i < n; j = i++)
         {
-            GameObject floor = FindGameObjectByName("Floor");
+            Vector3 vi = vertices[i];
+            Vector3 vj = vertices[j];
+            if (
+                ((vi.z > point.z) != (vj.z > point.z))
+                && (point.x < (vj.x - vi.x) * (point.z - vi.z) / (vj.z - vi.z) + vi.x)
+            )
+            {
+                inside = !inside;
+            }
+        }
+        return inside;
+    }
+
+    // Function to find the room containing a specific point, considering wall height
+    public RoomData FindRoomContainingPoint(Vector3 point)
+    {
+        foreach (RoomData roomData in rooms)
+        {
+            GameObject floor = roomData.floor;
             if (floor != null)
             {
                 MeshFilter meshFilter = floor.GetComponent<MeshFilter>();
@@ -205,37 +253,28 @@ public class RoomManager : Singleton<RoomManager>
                 {
                     Mesh mesh = meshFilter.mesh;
                     Vector3[] vertices = mesh.vertices;
-
-                    // Calculate the center of the vertices
-                    Vector3 centroid = Vector3.zero;
-                    foreach (Vector3 vertex in vertices)
+                    Vector3[] worldVertices = new Vector3[vertices.Length];
+                    for (int i = 0; i < vertices.Length; i++)
                     {
-                        centroid += vertex;
+                        worldVertices[i] = floor.transform.TransformPoint(vertices[i]);
                     }
-                    centroid /= vertices.Length;
 
-                    // Convert from local space to world space
-                    centroid = floor.transform.TransformPoint(centroid);
-
-                    return centroid;
-                }
-                else
-                {
-                    LogError("MeshFilter component not found on the Floor object.");
-                    return Vector3.zero;
+                    // Check if the point is within the polygon of the floor
+                    if (IsPointInPolygon(point, worldVertices))
+                    {
+                        // Check if the point's y-coordinate is within the room's height range
+                        float floorY = floor.transform.position.y;
+                        if (point.y >= floorY && point.y <= floorY + wallHeight)
+                        {
+                            return roomData;
+                        }
+                    }
                 }
             }
-            else
-            {
-                LogError("Floor object not found in the specified room.");
-                return Vector3.zero;
-            }
         }
-        else
-        {
-            LogError("Room object is null.");
-            return Vector3.zero;
-        }
+
+        Debug.LogError("No room found containing the point.");
+        return null;
     }
 
     // Function to find a GameObject by name within the entire scene
