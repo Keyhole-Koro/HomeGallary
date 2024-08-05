@@ -1,14 +1,9 @@
-using UnityEngine;
 using System.Collections.Generic;
 using System.IO;
+using UnityEngine;
+using Newtonsoft.Json;
 
-public interface ISaveLoadManager
-{
-    void SaveItemData(List<SpawnedItemData> itemDataList);
-    List<SpawnedItemData> LoadItemData();
-}
-
-public class SaveLoadManager : ISaveLoadManager
+public class SpawnedItemSaveLoad
 {
     private string filePath;
 
@@ -25,7 +20,7 @@ public class SaveLoadManager : ISaveLoadManager
         Debug.Log("Spawned item data saved to " + filePath);
     }
 
-    public List<SpawnedItemData> LoadItemData()
+    public List<SpawnedItemData> LoadItemData() // Fixed return type and method name
     {
         if (!File.Exists(filePath))
         {

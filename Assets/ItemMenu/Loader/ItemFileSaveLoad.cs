@@ -3,7 +3,7 @@ using System.IO;
 using UnityEngine;
 using Newtonsoft.Json;
 
-public class ItemDataManager : Singleton<ItemDataManager>
+public class ItemFileSaveLoad : Singleton<ItemFileSaveLoad>
 {
     string jsonFilePath = "Assets/ItemMenu/ItemData/data.json";
     public List<ItemData> itemDataList = new List<ItemData>();

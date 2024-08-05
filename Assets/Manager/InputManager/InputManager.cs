@@ -9,40 +9,20 @@ public class InputManager : Singleton<InputManager>
 
     void Update()
     {
-        if (Input.GetKeyUp(KeyCode.I))
+        GameState currentState = ModeManager.Instance.CurrentState;
+        if (currentState != null)
         {
-            ModeManager.Instance.On_I_KeyDown();
+            currentState.HandleInput();
         }
     }
 
     public void OnItemInMenuClicked(ItemData item)
     {
-        GameObject spawnedItem = SpawnItem.Instance.SpawnItemObject(item);
-        ModeManager.Instance.TrunOffOpenItemMenuMode();
-        string cameraName = "camera_" + item.id;
-        GameObject cameraObject = CameraManager.Instance.CreateAndRegisterCamera(cameraName);
-
-        cameraObject.transform.position = PlayerCameraController.Instance.GetCameraPosition();
-
-        Quaternion currentRotation =
-            PlayerCameraController.Instance.GetPlayerBodytransformRotation();
-
-        Quaternion newRotation = new Quaternion(0f, currentRotation.y, 0f, currentRotation.w);
-
-        // Set the new rotation
-        cameraObject.transform.rotation = newRotation;
-
-        // Switch to the newly created camera
-        CameraManager.Instance.SwitchCamera(cameraName);
-
-        PlayerCameraController.Instance.SetCursorMode();
-
-        PlaceItem.Instance.UpdateCamera(cameraObject);
+        ModeManager.Instance.PushState(new ItemPlacementMode(item));
     }
 
     public void OnItemPlacementDoneButtonClicked()
     {
-        PlaceItem.Instance.FinishItemPlacement();
-        print("item placement finished");
+        ModeManager.Instance.PopState();
     }
 }

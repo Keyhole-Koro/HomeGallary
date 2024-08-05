@@ -3,7 +3,7 @@ using UnityEngine.EventSystems;
 using System.Collections;
 using System.Collections.Generic;
 
-public class PlaceItem : Singleton<PlaceItem>
+public class PlaceItem : MonoBehaviour
 {
     private Camera ItemPlacementCamera;
     private float raycastDistance = 300f;
@@ -22,7 +22,7 @@ public class PlaceItem : Singleton<PlaceItem>
 
     EventSystem eventSystem;
 
-    void Start()
+    public void StartPlacceItem()
     {
         targetPosition = transform.position;
         hitLayers = LayerMask.GetMask("RoomLayer");
@@ -31,7 +31,7 @@ public class PlaceItem : Singleton<PlaceItem>
         itemPlacementButton = ItemPlacementButton.Instance.CreateUI();
     }
 
-    void Update()
+    public void UpdatePlaceItem()
     {
         if (transform.position == targetPosition)
         {
@@ -294,6 +294,7 @@ public class PlaceItem : Singleton<PlaceItem>
     public void FinishItemPlacement()
     {
         ItemPlacementButton.Instance.DestroyButton();
+        CameraManager.Instance.DestroyAndLeaveCurrentCamera();
         RoomData room = RoomManager.Instance.FindRoomContainingPoint(transform.position);
 
         if (room != null)

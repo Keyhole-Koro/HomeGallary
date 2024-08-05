@@ -2,23 +2,29 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ViewMode : Singleton<ViewMode>
+public class ViewMode : GameState
 {
-    // Start is called before the first frame update
-    void Start() { }
+    private bool isItemMenuOpened = false;
 
-    // Update is called once per frame
-    void Update() { }
-
-    public void TurnOn()
+    public override void EnterState()
     {
         CameraManager.Instance.SwitchToPlayerCamera();
         PlayerController.Instance.EnableMove();
         PlayerCameraController.Instance.SetViewMode();
     }
 
-    public void TurnOff()
+    public override void UpdateState() { }
+
+    public override void ExitState()
     {
         PlayerController.Instance.DisableMove();
+    }
+
+    public override void HandleInput()
+    {
+        if (Input.GetKeyDown(KeyCode.I))
+        {
+            ModeManager.Instance.PushState(new OpenItemMenuMode());
+        }
     }
 }

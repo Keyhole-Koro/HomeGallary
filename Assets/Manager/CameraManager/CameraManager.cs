@@ -6,6 +6,7 @@ public class CameraManager : Singleton<CameraManager>
 {
     private Dictionary<string, Camera> cameraDict;
     private Camera currentCamera;
+    private Camera previousCamera;
 
     void Start()
     {
@@ -33,12 +34,18 @@ public class CameraManager : Singleton<CameraManager>
     {
         if (cameraDict.TryGetValue(cameraName, out Camera newCamera))
         {
-            SetActiveCamera(newCamera);
+            SwitchCamera(newCamera);
         }
         else
         {
             Debug.LogWarning("Camera not found: " + cameraName);
         }
+    }
+
+    public void SwitchCamera(Camera camera)
+    {
+        previousCamera = currentCamera;
+        SetActiveCamera(camera);
     }
 
     void SetActiveCamera(Camera newCamera)
@@ -76,5 +83,38 @@ public class CameraManager : Singleton<CameraManager>
         }
 
         return cameraObject;
+    }
+
+    public void SwitchToPreviousCamera()
+    {
+        if (!previousCamera)
+            return;
+        SwitchCamera(previousCamera);
+    }
+
+    public void DestroyAndLeaveCurrentCamera()
+    {
+        // Check if the cameraObject exists in the dictionary
+        string cameraName = currentCamera.gameObject.name;
+        if (cameraDict.TryGetValue(cameraName, out Camera camera))
+        {
+            // Remove the camera from the dictionary
+            cameraDict.Remove(cameraName);
+
+            // Disable the camera before destroying it
+            if (camera != null)
+            {
+                camera.gameObject.SetActive(false);
+            }
+
+            // Destroy the camera object
+            Destroy(currentCamera);
+        }
+        else
+        {
+            Debug.LogWarning("Camera not found in dictionary: " + cameraName);
+        }
+
+        SwitchToPreviousCamera();
     }
 }

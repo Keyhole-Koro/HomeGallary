@@ -80,9 +80,6 @@ public class SpawnItem : Singleton<SpawnItem>
         // Set the initial position and rotation
         InitializeTransform(cuboid);
 
-        // Add the `PlaceItem` script to handle movement
-        cuboid.AddComponent<PlaceItem>();
-
         return cuboid;
     }
 
