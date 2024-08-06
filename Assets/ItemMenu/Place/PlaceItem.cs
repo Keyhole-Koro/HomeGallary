@@ -3,91 +3,41 @@ using UnityEngine.EventSystems;
 using System.Collections;
 using System.Collections.Generic;
 
-public class PlaceItem : MonoBehaviour
+public class PlaceItem : Singleton<PlaceItem>
 {
     private Camera ItemPlacementCamera;
-    private float raycastDistance = 300f;
+    public float raycastDistance = 300f;
     private float moveSpeed = 20f;
     public Vector3 targetPosition;
     private float precision = 0.1f;
     private float minHeight = 0.5f;
-    private GameObject pointerInstance;
     public LayerMask hitLayers;
     public float cameraRotationSpeed = 2f;
     public float cameraDistance = 5f;
     public float cameraMoveSpeed = 5f;
 
-    private bool ifRayCastStarted = false;
+    public bool ifRayCastStarted = false;
     private ItemPlacementButton itemPlacementButton;
+    private RoomData lastRoom;
 
-    EventSystem eventSystem;
-
-    public void StartPlacceItem()
+    public void StartPlaceItem()
     {
         targetPosition = transform.position;
         hitLayers = LayerMask.GetMask("RoomLayer");
-        CreatePointer();
 
         itemPlacementButton = ItemPlacementButton.Instance.CreateUI();
     }
 
     public void UpdatePlaceItem()
     {
-        if (transform.position == targetPosition)
+        float distance = Vector3.Distance(transform.position, targetPosition);
+        if (distance <= 0.1f)
         {
             itemPlacementButton.SetVisible();
         }
         else
         {
             itemPlacementButton.SetInvisible();
-        }
-
-        if (IsInputActive())
-        {
-            ifRayCastStarted = true;
-
-            if (eventSystem == null)
-                eventSystem = ItemMenuEventSystem.Instance.GetEventSystem();
-
-            // 2D ray
-            Ray ray = ItemPlacementCamera.ScreenPointToRay(Input.mousePosition);
-
-            PointerEventData pointerEventData = new PointerEventData(eventSystem)
-            {
-                position = Input.mousePosition
-            };
-
-            List<RaycastResult> results = new List<RaycastResult>();
-            eventSystem.RaycastAll(pointerEventData, results);
-
-            if (results.Count > 0)
-            {
-                RaycastResult frontMostResult = GetFrontMostResult(results);
-                if (frontMostResult.gameObject != null && frontMostResult.gameObject != null)
-                {
-                    if (frontMostResult.gameObject.name == ItemPlacementButton.Instance.buttonName)
-                    {
-                        InputManager.Instance.OnItemPlacementDoneButtonClicked();
-                    }
-                }
-            }
-            else if /*3D ray*/
-            (Physics.Raycast(ray, out RaycastHit hit, raycastDistance, hitLayers))
-            {
-                targetPosition = hit.point;
-                targetPosition.y = Mathf.Max(targetPosition.y, minHeight);
-
-                pointerInstance.transform.position = targetPosition;
-                pointerInstance.SetActive(true);
-            }
-            else
-            {
-                pointerInstance.SetActive(false);
-            }
-        }
-        else
-        {
-            pointerInstance.SetActive(false);
         }
 
         MoveTowards(targetPosition);
@@ -99,14 +49,15 @@ public class PlaceItem : MonoBehaviour
         }
     }
 
-    private RaycastResult GetFrontMostResult(List<RaycastResult> results)
+    public void UpdateTargetPosition(Vector3 position)
     {
-        if (results.Count == 0)
-        {
-            return default;
-        }
+        targetPosition = position;
+        targetPosition.y = Mathf.Max(targetPosition.y, minHeight);
+    }
 
-        RaycastResult frontMostResult = results[0];
+    public RaycastResult GetFrontMostResult(List<RaycastResult> results)
+    {
+        RaycastResult frontMostResult = InputUtils.GetFrontMostResult(results);
         float minDistance = frontMostResult.distance;
 
         foreach (var result in results)
@@ -133,17 +84,15 @@ public class PlaceItem : MonoBehaviour
 
     void AdjustCameraView()
     {
-        if (ItemPlacementCamera != null && pointerInstance != null)
+        if (ItemPlacementCamera != null)
         {
-            Vector3 screenPoint = ItemPlacementCamera.WorldToViewportPoint(
-                pointerInstance.transform.position
-            );
+            Vector3 screenPoint = ItemPlacementCamera.WorldToViewportPoint(transform.position);
 
-            // Adjust the camera if the pointer is out of the camera view
+            // Adjust the camera if the item is out of the camera view
             if (screenPoint.x < 0 || screenPoint.x > 1 || screenPoint.y < 0 || screenPoint.y > 1)
             {
                 Vector3 directionToPointer =
-                    pointerInstance.transform.position - ItemPlacementCamera.transform.position;
+                    transform.position - ItemPlacementCamera.transform.position;
                 Quaternion targetRotation = Quaternion.LookRotation(directionToPointer, Vector3.up);
                 ItemPlacementCamera.transform.rotation = Quaternion.Slerp(
                     ItemPlacementCamera.transform.rotation,
@@ -164,16 +113,6 @@ public class PlaceItem : MonoBehaviour
         }
     }
 
-    void CreatePointer()
-    {
-        GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        sphere.transform.localScale = new Vector3(0.2f, 0.2f, 0.2f);
-        Material redMaterial = new Material(Shader.Find("Standard")) { color = Color.red };
-        sphere.GetComponent<Renderer>().material = redMaterial;
-        sphere.SetActive(false);
-        pointerInstance = sphere;
-    }
-
     void MoveTowards(Vector3 target)
     {
         float distance = Vector3.Distance(transform.position, target);
@@ -185,12 +124,16 @@ public class PlaceItem : MonoBehaviour
         }
         else
         {
-            transform.position = target;
-
             RoomData room = RoomManager.Instance.FindRoomContainingPoint(target);
             if (room != null)
             {
+                transform.position = target;
                 AlignItemToFloor(room);
+                lastRoom = room;
+            }
+            else
+            {
+                AlignItemToFloor(lastRoom);
             }
 
             Vector3 cameraTargetPosition = transform.position - transform.forward * cameraDistance;
@@ -219,7 +162,7 @@ public class PlaceItem : MonoBehaviour
     void AlignItemToFloor(RoomData room)
     {
         GameObject attachingWall = room.findAttachingToWall(transform.position);
-        if (attachingWall == null) /* skip for aligning*/
+        if (attachingWall == null) // skip for aligning
         {
             return;
         }
@@ -286,11 +229,6 @@ public class PlaceItem : MonoBehaviour
         return false;
     }
 
-    bool IsInputActive()
-    {
-        return Input.GetMouseButton(0);
-    }
-
     public void FinishItemPlacement()
     {
         ItemPlacementButton.Instance.DestroyButton();
@@ -299,10 +237,17 @@ public class PlaceItem : MonoBehaviour
 
         if (room != null)
         {
+            // If a room is found, set the parent to this room
             transform.SetParent(room.room.transform);
+        }
+        else if (lastRoom != null)
+        {
+            // If no current room is found but there's a last room, set parent to the last room
+            transform.SetParent(lastRoom.room.transform);
         }
         else
         {
+            // If neither current room nor last room is found, log an error
             Debug.LogError(
                 "Error: No room found for the item placement at the specified location."
             );

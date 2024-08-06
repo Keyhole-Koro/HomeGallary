@@ -9,3 +9,8 @@ public class ItemData
     public string filePath;
     public List<string> tags;
 }
+
+public class ItemDataComponent : MonoBehaviour
+{
+    public ItemData itemData;
+}

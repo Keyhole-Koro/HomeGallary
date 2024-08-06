@@ -67,7 +67,6 @@ public class ItemPlacementButton : Singleton<ItemPlacementButton>
 
         // Set button layer
         ButtonLayer = LayerMask.GetMask("ButtonLayer");
-        print(ButtonLayer);
         buttonObj.layer = LayerMask.NameToLayer("ButtonLayer");
 
         // Set button click event

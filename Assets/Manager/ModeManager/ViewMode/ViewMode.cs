@@ -1,30 +1,29 @@
+using System.Diagnostics;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class ViewMode : GameState
 {
-    private bool isItemMenuOpened = false;
-
     public override void EnterState()
     {
-        CameraManager.Instance.SwitchToPlayerCamera();
-        PlayerController.Instance.EnableMove();
-        PlayerCameraController.Instance.SetViewMode();
+        PlayerController.Instance.Setup();
+        PlayerCameraController.Instance.Setup();
     }
 
-    public override void UpdateState() { }
-
-    public override void ExitState()
+    public override void UpdateState()
     {
-        PlayerController.Instance.DisableMove();
+        PlayerController.Instance.UpdatePlayer();
+        PlayerCameraController.Instance.UpdatePlayerCamera();
     }
+
+    public override void ExitState() { }
 
     public override void HandleInput()
     {
         if (Input.GetKeyDown(KeyCode.I))
         {
-            ModeManager.Instance.PushState(new OpenItemMenuMode());
+            ModeManager.Instance.PushState(new ItemMenuMode());
         }
     }
 }

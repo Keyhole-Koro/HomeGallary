@@ -5,45 +5,40 @@ public class PlayerCameraController : Singleton<PlayerCameraController>
     public float mouseSensitivity = 100f;
     private float xRotation = 0f;
     private float yRotation = 0f;
-    private bool isPlayMode = false;
 
-    void Start()
+    public void Setup()
     {
-        // Set camera's initial position and lock cursor
+        CameraManager.Instance.SwitchToPlayerCamera();
+        SetViewMode();
         transform.position = PlayerController.Instance.transform.position + new Vector3(0f, 1f, 0f);
         SetCursorLockState(CursorLockMode.Locked);
     }
 
-    void Update()
+    public void UpdatePlayerCamera()
     {
-        if (isPlayMode)
-        {
-            // Get mouse input for rotation
-            float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
-            float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
+        // Get mouse input for rotation
+        float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
+        float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
 
-            // Update and clamp vertical rotation
-            xRotation -= mouseY;
-            xRotation = Mathf.Clamp(xRotation, -30f, 30f);
+        // Update and clamp vertical rotation
+        xRotation -= mouseY;
+        xRotation = Mathf.Clamp(xRotation, -30f, 30f);
 
-            // Update horizontal rotation
-            yRotation += mouseX;
+        // Update horizontal rotation
+        yRotation += mouseX;
 
-            // Apply rotations and update camera position
-            transform.rotation = Quaternion.Euler(xRotation, yRotation, 0f);
-        }
+        // Apply rotations and update camera position
+        transform.rotation = Quaternion.Euler(xRotation, yRotation, 0f);
     }
 
     public void SetViewMode()
     {
-        isPlayMode = true;
         SetCursorLockState(CursorLockMode.Locked);
         Cursor.visible = false;
     }
 
     public void SetCursorMode()
     {
-        isPlayMode = false;
         SetCursorLockState(CursorLockMode.None);
         Cursor.visible = true;
     }
@@ -63,7 +58,7 @@ public class PlayerCameraController : Singleton<PlayerCameraController>
 
     public Vector3 GetCameraPosition() => transform.position;
 
-    private void SetCursorLockState(CursorLockMode lockMode) => Cursor.lockState = lockMode;
+    public void SetCursorLockState(CursorLockMode lockMode) => Cursor.lockState = lockMode;
 
     public float GetXRotation() => xRotation;
 

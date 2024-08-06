@@ -225,13 +225,23 @@ public class RoomManager : Singleton<RoomManager>
     {
         int n = vertices.Length;
         bool inside = false;
+
+        // Project 3D points to 2D plane (XY plane in this case)
+        Vector2 pt = new Vector2(point.x, point.z);
+
+        Vector2[] poly = new Vector2[n];
+        for (int i = 0; i < n; i++)
+        {
+            poly[i] = new Vector2(vertices[i].x, vertices[i].z);
+        }
+
         for (int i = 0, j = n - 1; i < n; j = i++)
         {
-            Vector3 vi = vertices[i];
-            Vector3 vj = vertices[j];
+            Vector2 vi = poly[i];
+            Vector2 vj = poly[j];
             if (
-                ((vi.z > point.z) != (vj.z > point.z))
-                && (point.x < (vj.x - vi.x) * (point.z - vi.z) / (vj.z - vi.z) + vi.x)
+                (vi.y > pt.y) != (vj.y > pt.y)
+                && (pt.x < (vj.x - vi.x) * (pt.y - vi.y) / (vj.y - vi.y) + vi.x)
             )
             {
                 inside = !inside;
@@ -273,7 +283,7 @@ public class RoomManager : Singleton<RoomManager>
             }
         }
 
-        Debug.LogError("No room found containing the point.");
+        Debug.Log("No room found containing the point.");
         return null;
     }
 

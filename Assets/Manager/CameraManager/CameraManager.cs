@@ -25,6 +25,11 @@ public class CameraManager : Singleton<CameraManager>
         }
     }
 
+    public Camera GetCurrentCamera()
+    {
+        return currentCamera;
+    }
+
     public void SwitchToPlayerCamera()
     {
         SwitchCamera("PlayerCamera");

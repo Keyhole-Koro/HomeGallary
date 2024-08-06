@@ -80,6 +80,11 @@ public class SpawnItem : Singleton<SpawnItem>
         // Set the initial position and rotation
         InitializeTransform(cuboid);
 
+        cuboid.layer = LayerMask.NameToLayer("SpawnedItemLayer");
+
+        ItemDataComponent itemDataComponent = cuboid.AddComponent<ItemDataComponent>();
+        itemDataComponent.itemData = itemData;
+
         return cuboid;
     }
 

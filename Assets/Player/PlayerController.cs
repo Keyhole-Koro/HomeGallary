@@ -2,43 +2,38 @@ using UnityEngine;
 
 public class PlayerController : Singleton<PlayerController>
 {
+    private Vector3 playerPosition = new Vector3(0, 0, 0);
     public float moveSpeed = 5f;
-    private bool movable = true;
-    private Rigidbody rb;
+    public Rigidbody rb;
 
-    void Start()
+    public void Setup()
     {
-        transform.position = new Vector3(0f, 0f, 0f);
-
-        // Add Rigidbody if not already present
-        rb = gameObject.AddComponent<Rigidbody>();
-        rb.freezeRotation = true;
-
-        // Add and configure BoxCollider
-        BoxCollider playerCollider = gameObject.AddComponent<BoxCollider>();
-        playerCollider.size = new Vector3(1f, 1f, 1f);
+        transform.position = playerPosition;
+        if (!rb)
+        {
+            rb = gameObject.AddComponent<Rigidbody>();
+            rb.freezeRotation = true;
+        }
+        if (!gameObject.GetComponent<BoxCollider>())
+        {
+            BoxCollider playerCollider = gameObject.AddComponent<BoxCollider>();
+            playerCollider.size = new Vector3(1f, 1f, 1f);
+        }
     }
 
-    void Update()
+    public void UpdatePlayer()
     {
-        if (movable && PlayerCameraController.Instance != null)
-        {
-            Vector3 moveDirection = PlayerCameraController.Instance.GetCameraRotation();
-            transform.Translate(moveDirection.normalized * moveSpeed * Time.deltaTime, Space.World);
-            transform.forward = PlayerCameraController.Instance.transform.forward;
-        }
+        Vector3 moveDirection = PlayerCameraController.Instance.GetCameraRotation();
+        transform.Translate(moveDirection.normalized * moveSpeed * Time.deltaTime, Space.World);
+        transform.forward = PlayerCameraController.Instance.transform.forward;
+        playerPosition = transform.position;
     }
 
     void OnCollisionEnter(Collision collision)
     {
-        // Stop player movement on collision
         rb.velocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
     }
-
-    public void EnableMove() => movable = true;
-
-    public void DisableMove() => movable = false;
 
     public Vector3 GetPlayerPosition() => transform.position;
 }
